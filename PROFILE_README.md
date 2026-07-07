@@ -129,6 +129,16 @@
 
 </div>
 
+### 🍩 &nbsp;Most Used Languages
+
+<div align="center">
+
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RabinAlam&layout=donut&theme=tokyonight&hide_border=true&langs_count=8&bg_color=0D1117&ring=0E75B6&hide=html,shell" width="400" />
+
+<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=RabinAlam&layout=donut-vertical&theme=tokyonight&hide_border=true&langs_count=8&bg_color=0D1117&ring=0E75B6&hide=html,shell" width="180" />
+
+</div>
+
 <div align="center">
 
 <img src="https://github-readme-streak-stats.herokuapp.com/?user=RabinAlam&theme=tokyonight&hide_border=true&background=0D1117" width="70%" />
