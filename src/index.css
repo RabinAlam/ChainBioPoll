@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Styles ─── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-dark-950 text-dark-100 font-sans antialiased;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar Styling ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-500;
+}
+
+/* ─── Selection ─── */
+::selection {
+  @apply bg-primary-600/40 text-white;
+}
+
+/* ─── Glassmorphism Utility ─── */
+@layer components {
+  .glass {
+    @apply bg-dark-800/50 backdrop-blur-xl border border-dark-700/50 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-dark-800/40 backdrop-blur-xl border border-dark-700/40 rounded-2xl shadow-lg
+           transition-all duration-300 hover:border-primary-500/30 hover:shadow-primary-500/5;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 text-white font-semibold
+           px-6 py-2.5 rounded-xl shadow-lg shadow-primary-600/20
+           hover:shadow-primary-500/30 hover:from-primary-500 hover:to-primary-400
+           active:scale-[0.98] transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent-600 to-accent-500 text-white font-semibold
+           px-6 py-2.5 rounded-xl shadow-lg shadow-accent-600/20
+           hover:shadow-accent-500/30 hover:from-accent-500 hover:to-accent-400
+           active:scale-[0.98] transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-outline {
+    @apply border border-dark-600 text-dark-200 font-medium
+           px-6 py-2.5 rounded-xl
+           hover:border-primary-500/50 hover:text-primary-400 hover:bg-primary-500/5
+           active:scale-[0.98] transition-all duration-200;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold
+           px-6 py-2.5 rounded-xl shadow-lg shadow-red-600/20
+           hover:shadow-red-500/30 hover:from-red-500 hover:to-red-400
+           active:scale-[0.98] transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-dark-900/80 border border-dark-700/60 rounded-xl px-4 py-3
+           text-dark-100 placeholder-dark-500 font-sans
+           focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500/60
+           transition-all duration-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-500/15 text-primary-400 border border-primary-500/20;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-500/15 text-accent-400 border border-accent-500/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-500/15 text-amber-400 border border-amber-500/20;
+  }
+
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .section-title {
+    @apply text-2xl sm:text-3xl font-bold bg-gradient-to-r from-dark-100 to-dark-300 bg-clip-text text-transparent;
+  }
+
+  .section-subtitle {
+    @apply text-dark-400 text-sm sm:text-base mt-1;
+  }
+}
+
+/* ─── Background Gradient Mesh ─── */
+.bg-mesh {
+  background-image:
+    radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 30%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+    radial-gradient(at 40% 80%, rgba(99, 102, 241, 0.04) 0px, transparent 50%);
+}

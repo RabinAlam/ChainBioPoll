@@ -1,0 +1,19 @@
+{
+  "name": "chainbiopoll-server",
+  "version": "1.0.0",
+  "description": "ChainBioPoll — IoT Biometric Voting Backend (Express + MongoDB)",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "mongoose": "^8.9.2",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {}
+}
