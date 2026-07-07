@@ -1,26 +1,24 @@
 import mongoose from 'mongoose'
+import { encryptNID, decryptNID } from '../utils/crypto.js'
 
 /**
  * Voter Schema
  *
  * Stores voter identity data for off-chain biometric verification.
- *
- * Fields:
- *  - nid:             National ID (unique identifier — stored for lookup during authentication)
- *  - name:            Voter's full name
- *  - encryptedSalt:   AES-encrypted random salt (used to derive voterHash)
- *  - voterHash:       keccak256(nid + salt) — this is the pseudonymous hash registered on-chain
- *  - faceEmbedding:   Mock biometric data (array of numbers simulating a facial embedding vector)
- *  - isRegistered:    Whether this voter's hash has been registered on the smart contract
- *  - registeredAt:    Timestamp of registration
+ * NID is encrypted at rest using AES-256-GCM.
  */
 const voterSchema = new mongoose.Schema(
   {
-    nid: {
+    encryptedNID: {
       type: String,
       required: [true, 'National ID is required'],
       unique: true,
-      trim: true,
+      index: true,
+    },
+    nidHash: {
+      type: String,
+      required: true,
+      unique: true,
       index: true,
     },
     name: {
@@ -61,8 +59,17 @@ const voterSchema = new mongoose.Schema(
 // Virtual: truncated hash for display
 voterSchema.virtual('truncatedHash').get(function () {
   return this.voterHash
-    ? `${this.voterHash.slice(0, 10)}…${this.voterHash.slice(-6)}`
+    ? `${this.voterHash.slice(0, 10)}...${this.voterHash.slice(-6)}`
     : ''
+})
+
+// Virtual: decrypt NID for internal use only
+voterSchema.virtual('nid').get(function () {
+  try {
+    return decryptNID(this.encryptedNID)
+  } catch {
+    return null
+  }
 })
 
 // Ensure virtuals are included in JSON output

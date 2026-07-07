@@ -6,6 +6,7 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const ADMIN_API_KEY = import.meta.env.VITE_ADMIN_API_KEY || ''
 
 // ──────────────────────────────────────────────────
 //  Types
@@ -26,7 +27,6 @@ export interface RegisterResponse {
   data?: {
     voterHash: string
     name: string
-    nid: string
     truncatedHash: string
     registeredAt: string
   }
@@ -54,7 +54,6 @@ export interface AuthenticateResponse {
 
 export interface VoterRecord {
   _id: string
-  nid: string
   name: string
   voterHash: string
   truncatedHash: string
@@ -66,6 +65,24 @@ export interface VotersListResponse {
   success: boolean
   count: number
   data: VoterRecord[]
+}
+
+// ──────────────────────────────────────────────────
+//  Helpers
+// ──────────────────────────────────────────────────
+
+function adminHeaders(): Record<string, string> {
+  return ADMIN_API_KEY ? { 'x-api-key': ADMIN_API_KEY } : {}
+}
+
+/**
+ * Generate a mock 128-dimensional face embedding vector.
+ * Used for demo/testing when real biometric data is unavailable.
+ */
+function generateMockFaceEmbedding(): number[] {
+  return Array.from({ length: 128 }, () =>
+    parseFloat((Math.random() * 2 - 1).toFixed(6))
+  )
 }
 
 // ──────────────────────────────────────────────────
@@ -85,32 +102,44 @@ export async function apiRegisterVoter(payload: RegisterRequest): Promise<Regist
 }
 
 /**
- * Authenticate a voter via mock biometric (NID lookup).
- * Returns the voter's on-chain hash if successful.
+ * Authenticate a voter via biometric verification.
+ * Sends NID + mock face embedding for demo mode.
  */
 export async function apiAuthenticateVoter(payload: AuthenticateRequest): Promise<AuthenticateResponse> {
+  const body: AuthenticateRequest = {
+    nid: payload.nid,
+    biometricInput: payload.biometricInput || {
+      faceEmbedding: generateMockFaceEmbedding(),
+    },
+  }
+
   const res = await fetch(`${API_BASE}/authenticate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   })
   return res.json()
 }
 
 /**
  * Fetch the list of all registered voters (admin utility).
+ * Requires x-api-key header.
  */
 export async function apiGetVoters(): Promise<VotersListResponse> {
-  const res = await fetch(`${API_BASE}/voters`)
+  const res = await fetch(`${API_BASE}/voters`, {
+    headers: adminHeaders(),
+  })
   return res.json()
 }
 
 /**
  * Mark a voter as registered on-chain in the backend DB.
+ * Requires x-api-key header.
  */
 export async function apiMarkVoterRegistered(nid: string): Promise<{ success: boolean }> {
   const res = await fetch(`${API_BASE}/voter/${encodeURIComponent(nid)}/mark-registered`, {
     method: 'PATCH',
+    headers: adminHeaders(),
   })
   return res.json()
 }

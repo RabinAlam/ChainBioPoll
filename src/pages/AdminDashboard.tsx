@@ -357,7 +357,6 @@ export default function AdminDashboard() {
                   <thead>
                     <tr className="border-b border-dark-700/50">
                       <th className="text-left text-xs font-semibold text-dark-400 uppercase tracking-wider px-4 py-3">Name</th>
-                      <th className="text-left text-xs font-semibold text-dark-400 uppercase tracking-wider px-4 py-3">NID</th>
                       <th className="text-left text-xs font-semibold text-dark-400 uppercase tracking-wider px-4 py-3">Hash</th>
                       <th className="text-center text-xs font-semibold text-dark-400 uppercase tracking-wider px-4 py-3">On-Chain</th>
                     </tr>
@@ -366,12 +365,11 @@ export default function AdminDashboard() {
                     {registeredVoters.map((v) => (
                       <tr key={v._id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
                         <td className="px-4 py-3 text-sm font-medium text-dark-100">{v.name}</td>
-                        <td className="px-4 py-3 text-sm font-mono text-dark-400">{v.nid}</td>
                         <td className="px-4 py-3 text-xs font-mono text-primary-400">{v.truncatedHash}</td>
                         <td className="px-4 py-3 text-center">
                           {v.isRegistered
-                            ? <span className="text-accent-400 text-xs">✅ Yes</span>
-                            : <span className="text-dark-600 text-xs">⏳ Pending</span>
+                            ? <span className="text-accent-400 text-xs">Yes</span>
+                            : <span className="text-dark-600 text-xs">Pending</span>
                           }
                         </td>
                       </tr>

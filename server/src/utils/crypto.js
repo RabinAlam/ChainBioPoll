@@ -1,7 +1,13 @@
 import crypto from 'node:crypto'
-import CryptoJS from 'crypto-js'
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-dev-key'
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
+if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 64) {
+  throw new Error('ENCRYPTION_KEY must be set to a 256-bit (64 hex char) random value')
+}
+
+const ALGORITHM = 'aes-256-gcm'
+const IV_LENGTH = 16
+const AUTH_TAG_LENGTH = 16
 
 /**
  * Generate a cryptographically random salt (hex string).
@@ -16,10 +22,6 @@ export function generateSalt(bytes = 32) {
  * Create a pseudonymous voter hash from NID + salt.
  * Uses SHA-256 to produce a 0x-prefixed bytes32-compatible hex string.
  *
- * Note: On the smart contract side the admin registers this hash via
- * `registerVoter(bytes32 _voterHash)`. The frontend converts this hex
- * string to bytes32 before calling the contract.
- *
  * @param {string} nid — national ID
  * @param {string} salt — random salt
  * @returns {string} 0x-prefixed SHA-256 hash (66 chars)
@@ -31,30 +33,89 @@ export function createVoterHash(nid, salt) {
 }
 
 /**
- * Encrypt a plaintext salt using AES symmetric encryption.
+ * Encrypt a plaintext salt using AES-256-GCM symmetric encryption.
  * The encrypted value is stored in the DB — only the server can decrypt it.
  *
  * @param {string} plaintext — the raw salt
- * @returns {string} AES-encrypted ciphertext
+ * @returns {string} IV:authTag:ciphertext (all hex-encoded)
  */
 export function encryptSalt(plaintext) {
-  return CryptoJS.AES.encrypt(plaintext, ENCRYPTION_KEY).toString()
+  const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+  const iv = crypto.randomBytes(IV_LENGTH)
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex')
+  encrypted += cipher.final('hex')
+
+  const authTag = cipher.getAuthTag()
+
+  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`
 }
 
 /**
- * Decrypt an AES-encrypted salt back to plaintext.
+ * Decrypt an AES-256-GCM encrypted salt back to plaintext.
  *
- * @param {string} ciphertext — the encrypted salt from the DB
+ * @param {string} ciphertext — IV:authTag:ciphertext
  * @returns {string} decrypted plaintext salt
  */
 export function decryptSalt(ciphertext) {
-  const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY)
-  return bytes.toString(CryptoJS.enc.Utf8)
+  const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+  const [ivHex, authTagHex, encryptedHex] = ciphertext.split(':')
+
+  const iv = Buffer.from(ivHex, 'hex')
+  const authTag = Buffer.from(authTagHex, 'hex')
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+  decipher.setAuthTag(authTag)
+
+  let decrypted = decipher.update(encryptedHex, 'hex', 'utf8')
+  decrypted += decipher.final('utf8')
+
+  return decrypted
+}
+
+/**
+ * Encrypt NID at rest using AES-256-GCM.
+ *
+ * @param {string} plaintext — the raw NID
+ * @returns {string} IV:authTag:ciphertext
+ */
+export function encryptNID(plaintext) {
+  const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+  const iv = crypto.randomBytes(IV_LENGTH)
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex')
+  encrypted += cipher.final('hex')
+
+  const authTag = cipher.getAuthTag()
+
+  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`
+}
+
+/**
+ * Decrypt an encrypted NID back to plaintext.
+ *
+ * @param {string} ciphertext — IV:authTag:ciphertext
+ * @returns {string} decrypted plaintext NID
+ */
+export function decryptNID(ciphertext) {
+  const key = Buffer.from(ENCRYPTION_KEY, 'hex')
+  const [ivHex, authTagHex, encryptedHex] = ciphertext.split(':')
+
+  const iv = Buffer.from(ivHex, 'hex')
+  const authTag = Buffer.from(authTagHex, 'hex')
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+  decipher.setAuthTag(authTag)
+
+  let decrypted = decipher.update(encryptedHex, 'hex', 'utf8')
+  decrypted += decipher.final('utf8')
+
+  return decrypted
 }
 
 /**
  * Generate a mock facial embedding vector.
- * Simulates a 128-dimensional face descriptor (like dlib/FaceNet would produce).
+ * Simulates a 128-dimensional face descriptor.
  *
  * @returns {number[]} array of 128 floats between -1 and 1
  */
@@ -67,9 +128,6 @@ export function generateMockFaceEmbedding() {
 /**
  * Simulate biometric matching by computing cosine similarity
  * between two embedding vectors.
- *
- * In production this would use a real ML model; here we just
- * check if the NID matches (and return a mock confidence score).
  *
  * @param {number[]} embeddingA
  * @param {number[]} embeddingB
